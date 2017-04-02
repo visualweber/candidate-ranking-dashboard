@@ -1,4 +1,5 @@
 import json
+import itertools
 from flask import request as req
 from flask.ext.mysql import MySQL
 from flask import Flask, render_template, jsonify
@@ -6,6 +7,7 @@ from flask import Flask, render_template, jsonify
 
 # Init app
 app = Flask(__name__)
+app.debug = True
 mysql = MySQL()
  
 # MySQL configurations
@@ -20,21 +22,49 @@ conn = mysql.connect()
 def main():
 	return render_template('index.html')
 
-@app.route("/api/v1/candidate")
-def api_candidate():
+
+def dictfetchall(cursor):
+    desc = cursor.description
+    return dict(itertools.izip([col[0] for col in desc], cursor.fetchone()))
+
+@app.route("/api/v1/candidate/<int:candidate_id>")
+def api_candidate(candidate_id):
+	cursor = conn.cursor()
+	cursor.execute("""SELECT * FROM candidates
+		JOIN c_details ON candidates.candidate_id = c_details.c_details_candidate_id
+		JOIN c_employment ON candidates.candidate_id = c_employment.c_employment_candidate_id
+		WHERE candidate_id = %s """, (candidate_id, ))
+	result = dictfetchall(cursor)
+	# cursor.close()
+	# conn.close()
+
+	return jsonify(result)
+	# return app.response_class(
+	# 	response=json.dumps(result),
+	# 	status=200,
+	# 	mimetype='application/json'
+	# )
+
+
+@app.route("/api/v1/candidates")
+def api_candidates():
 	limit = max(req.args.get('limit', default=10, type=int), 100)
 	cursor = conn.cursor()
 	cursor.execute("SELECT * FROM candidates LIMIT %s", (limit, ))
 	results = cursor.fetchall()
+	cursor.close()
+	conn.close()
+	
 	
 	return app.response_class(
-        response=json.dumps(results),
-        status=200,
-        mimetype='application/json'
-    )
+		response=json.dumps(results),
+		status=200,
+		mimetype='application/json'
+	)
+
 
 @app.route("/api/v1/skill")
-def api_candidate():
+def api_skill():
 	# Data source
 	data_source = req.args.get('source', default='candidate', type=str)
 	
@@ -56,7 +86,9 @@ def api_candidate():
 		if results: results = results[0]
 		if results: results = results.split(',')
 		if results: results = [ result.strip() for result in results ]
-
+	cursor.close()
+	conn.close()
+	
 	return app.response_class(
 		response=json.dumps(results),
 		status=200,
@@ -66,11 +98,11 @@ def api_candidate():
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return 'This page does not exist', 404
+	return 'This page does not exist', 404
 
 # @app.errorhandler(DatabaseError)
 # def special_exception_handler(error):
-#     return 'Database connection failed', 500
+#	 return 'Database connection failed', 500
 
 if __name__ == "__main__":
-    app.run()
+	app.run()
