@@ -1,2 +1,6 @@
 flask
 flask-mysql
+scipy
+gensim
+pandas
+numpy
