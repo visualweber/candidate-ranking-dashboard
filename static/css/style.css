@@ -57,3 +57,8 @@
   color: #262626;
   background-color: #ffff00;
 }
+
+.highlightedText {
+  background-color: #efff00;
+  padding: 3px;
+}

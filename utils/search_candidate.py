@@ -1,10 +1,10 @@
-from gensim.models import KeyedVectors
 from scipy import spatial
 import pandas as pd
 import numpy as np
 import re
 
-model = KeyedVectors.load_word2vec_format('./data/duyet_word2vec_skill.bin', binary=True)
+from word2vec_model import *
+
 candidate_index_path = './data/candidate_skills_vector_test.csv'
 
 def avg_feature_vector(words, model, num_features):

@@ -9,8 +9,10 @@
     <link href="/static/css/style.css" rel="stylesheet">
 
     <script type="text/javascript" src="/static/js/angular.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/static/js/angular-route.js"></script>
     <script type="text/javascript" src="/static/js/ng-tags-input.js"></script>
+    <script type="text/javascript" src="/static/js/angular-avatar.min.js"></script>
     <script type="text/javascript" src="/static/js/app.js"></script>
 </head>
  
@@ -36,18 +38,35 @@
 
                 <br />
                 <button class="btn btn-info btn-block" ng-click="submit_search()">Search</button>
+                
+                <br />
+
+                {% raw %}
+                    <div ng-show="1">
+                        <a role="button" data-toggle="collapse"
+                            href="#" 
+                            aria-expanded="false" 
+                            ng-repeat="skill in relevant_skills">
+                          {{ skill[0] }}
+                        </a>
+                    </div>
+                {% endraw %}
+
             </div>
             <div class="col-md-9">
                 <div ng-show="loading">Loading ...</div>
                 {% raw %}
                 <div class="media" ng-repeat="c in candiate_matched | orderBy: '-matching_score'">
                   <div class="media-left">
-                    <a href="#">
-                      <img class="media-object img-circle" width="100" src="/static/img/avatar.jpg" alt="{{ c.name }}">
+                    <a href="{{ profileURL(c.candidate_name + '%20' + c.candidate_surname) }}" target="_blank">
+                        <ng-avatar string="{{c.candidate_name + ' ' + c.candidate_surname}}" picture-resolution="512" width="90" round-shape="true" auto-color="true"></ng-avatar>
                     </a>
                   </div>
                   <div class="media-body">
-                    <h4 class="media-heading" ng-bind="c.candidate_name + ' ' + c.candidate_surname"></h4>
+                    <a href="{{ profileURL(c.candidate_name + '%20' + c.candidate_surname) }}">
+                        <h4 class="media-heading" ng-bind="c.candidate_name + ' ' + c.candidate_surname"></h4>
+                    </a>
+                    
                     <p>
                         Candidate ID: <span class="candidate_id" ng-bind="c.candidate_id"></span>, 
                         Gender: <span class="gender" ng-bind="c.candidate_gender"></span>,
@@ -62,7 +81,7 @@
                         <i>Matching score: <span class="matching_score" ng-bind="c.matching_score"></span></i>
                     </p>
 
-                    <p ng-bind="c.skills" class="text-success"></p>
+                    <p ng-bind-html="highlightSkill(c.skills)" class="text-success"></p>
                   </div>
                 </div>
                 {% endraw %}

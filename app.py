@@ -4,6 +4,7 @@ from flask import request as req
 from flask.ext.mysql import MySQL
 from flask import Flask, render_template, jsonify
 from utils.search_candidate import find_candidate_by_skill
+from utils.word2vec_model import *
 
 # Init app
 app = Flask(__name__)
@@ -53,7 +54,7 @@ def api_candidate(candidate_id):
 @app.route("/api/v1/matching_candidates")
 def matching_candidates():
 	limit = max(min(req.args.get('limit', default=10, type=int), 100), 5)
-	skills = req.args.get('skills', default='java', type=str)
+	skills = req.args.get('skills', type=str)
 	if not skills: return []
 	skills = str(skills).split(',')
 	
@@ -100,6 +101,19 @@ def api_candidates():
 		mimetype='application/json'
 	)
 
+
+@app.route("/api/v1/relevant_skills")
+def relevant_skills():
+	skills = req.args.get('skills', default='', type=str)
+	if not skills: return []
+	skills = str(skills).split(',')
+
+	relevant_skills = [ { skill: get_relevant_skill(skill) }  for skill in skills ]
+	return app.response_class(
+		response=json.dumps(relevant_skills),
+		status=200,
+		mimetype='application/json'
+	)
 
 @app.route("/api/v1/skill")
 def api_skill():
