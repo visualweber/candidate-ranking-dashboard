@@ -9,9 +9,11 @@ app.controller('main', function ($scope, $http) {
 	};
 
 	$scope.candiate_matched = [];
+	$scope.loading = false;
 
 	$scope.submit_search = function () {
 		var skills = [];
+		$scope.loading = true;
 		$scope.searchSkills.forEach(function (i) {
 			skills.push(i.text)
 		})
@@ -20,7 +22,8 @@ app.controller('main', function ($scope, $http) {
 
 		$http.get('/api/v1/matching_candidates?skills=' + skills + '&limit=' + $scope.limit).then(function(data) {
 			$scope.candiate_matched = data.data;
-			console.log(data.data)
+			console.log(data.data);
+			$scope.loading = false;
 		})
 	}
 });

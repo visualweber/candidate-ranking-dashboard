@@ -38,8 +38,9 @@
                 <button class="btn btn-info btn-block" ng-click="submit_search()">Search</button>
             </div>
             <div class="col-md-9">
+                <div ng-show="loading">Loading ...</div>
                 {% raw %}
-                <div class="media" ng-repeat="c in candiate_matched track by $index">
+                <div class="media" ng-repeat="c in candiate_matched | orderBy: '-matching_score'">
                   <div class="media-left">
                     <a href="#">
                       <img class="media-object img-circle" width="100" src="/static/img/avatar.jpg" alt="{{ c.name }}">
@@ -61,9 +62,7 @@
                         <i>Matching score: <span class="matching_score" ng-bind="c.matching_score"></span></i>
                     </p>
 
-                    <p ng-bind="c.skills">
-                        
-                    </p>
+                    <p ng-bind="c.skills" class="text-success"></p>
                   </div>
                 </div>
                 {% endraw %}
