@@ -3,7 +3,7 @@ import itertools
 from flask import request as req
 from flask.ext.mysql import MySQL
 from flask import Flask, render_template, jsonify
-# from werkzeug import generate_password_hash, check_password_hash
+from utils.search_candidate import find_candidate_by_skill
 
 # Init app
 app = Flask(__name__)
@@ -27,6 +27,10 @@ def dictfetchall(cursor):
     desc = cursor.description
     return dict(itertools.izip([col[0] for col in desc], cursor.fetchone()))
 
+def dictfetchall_aslist(cursor):
+    desc = cursor.description
+    return [ dict(itertools.izip([col[0] for col in desc], row)) for row in cursor.fetchall() ] 
+
 @app.route("/api/v1/candidate/<int:candidate_id>")
 def api_candidate(candidate_id):
 	cursor = conn.cursor()
@@ -44,6 +48,40 @@ def api_candidate(candidate_id):
 	# 	status=200,
 	# 	mimetype='application/json'
 	# )
+
+
+@app.route("/api/v1/matching_candidates")
+def matching_candidates():
+	limit = max(min(req.args.get('limit', default=10, type=int), 100), 5)
+	skills = req.args.get('skills', default='java', type=str)
+	if not skills: return []
+	skills = str(skills).split(',')
+	
+	list_candidates = find_candidate_by_skill(skills, limit=limit)
+	_ids = [ str(c['candidate_id']) for c in list_candidates ]
+
+	cursor = conn.cursor()
+	cursor.execute("""
+		SELECT c.*, GROUP_CONCAT(DISTINCT skill.name SEPARATOR ', ') as skills 
+		FROM candidates c join c_skill_tags skill on c.candidate_id = skill.candidate_id 
+		WHERE c.candidate_id IN (%s)
+		group by c.candidate_id 
+		limit 10
+		""" % (', '.join(_ids)) )
+	# results = cursor.fetchall()
+	results = dictfetchall_aslist(cursor)
+
+	for i in results:
+		for c in list_candidates:
+			if c['candidate_id'] == i['candidate_id']:
+				i['matching_score'] = c['score']
+				del c
+	
+	return app.response_class(
+		response=json.dumps(results),
+		status=200,
+		mimetype='application/json'
+	)
 
 
 @app.route("/api/v1/candidates")

@@ -30,24 +30,40 @@
         <div class="row">
             <div class="col-md-3">
                 <label for="inputHelpBlock">Skills</label>
-                <tags-input ng-model="searchSkills" class="data-input">
+                <tags-input ng-model="searchSkills" class="data-input" min-length="1">
                     <auto-complete source="skillTypeAhead($query)"></auto-complete>
                 </tags-input>
 
                 <br />
-                <button class="btn btn-info btn-block">Search</button>
+                <button class="btn btn-info btn-block" ng-click="submit_search()">Search</button>
             </div>
-            <div class="col-md-8 col-md-offset-1">
+            <div class="col-md-9">
                 {% raw %}
-                <div class="media" ng-repeat="candidate in candiate_matched track by $index">
+                <div class="media" ng-repeat="c in candiate_matched track by $index">
                   <div class="media-left">
                     <a href="#">
-                      <img class="media-object img-circle" width="100" src="/static/img/avatar.jpg" alt="{{ candidate.name }}">
+                      <img class="media-object img-circle" width="100" src="/static/img/avatar.jpg" alt="{{ c.name }}">
                     </a>
                   </div>
                   <div class="media-body">
-                    <h4 class="media-heading">{{ candidate.name }}</h4>
-                    <p>ras sit amet nibh libero, in gravid</p>
+                    <h4 class="media-heading" ng-bind="c.candidate_name + ' ' + c.candidate_surname"></h4>
+                    <p>
+                        Candidate ID: <span class="candidate_id" ng-bind="c.candidate_id"></span>, 
+                        Gender: <span class="gender" ng-bind="c.candidate_gender"></span>,
+                        Country: <span class="country" ng-bind="c.candidate_country"></span>,
+                    </p>
+
+                    <p>
+                        Degree: <span class="country" ng-bind="c.candidate_degree"></span>
+                    </p>
+
+                    <p>
+                        <i>Matching score: <span class="matching_score" ng-bind="c.matching_score"></span></i>
+                    </p>
+
+                    <p ng-bind="c.skills">
+                        
+                    </p>
                   </div>
                 </div>
                 {% endraw %}
