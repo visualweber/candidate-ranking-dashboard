@@ -5,7 +5,7 @@ import re
 
 from word2vec_model import *
 
-candidate_index_path = './data/candidate_skills_vector_test.csv'
+candidate_index_path = './data/candidate_skills_vector_1k.csv'
 
 def avg_feature_vector(words, model, num_features):
         #function to average all words vectors in a given paragraph
