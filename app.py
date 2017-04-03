@@ -108,7 +108,7 @@ def relevant_skills():
 	if not skills: return []
 	skills = str(skills).split(',')
 
-	relevant_skills = [ { skill: get_relevant_skill(skill) }  for skill in skills ]
+	relevant_skills = [ { 'name': skill, 'data': get_relevant_skill(skill) }  for skill in skills ]
 	return app.response_class(
 		response=json.dumps(relevant_skills),
 		status=200,

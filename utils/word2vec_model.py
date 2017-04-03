@@ -1,6 +1,8 @@
 from gensim.models import KeyedVectors
+import os
 
-model = KeyedVectors.load_word2vec_format('./data/duyet_word2vec_skill.bin', binary=True)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+model = KeyedVectors.load_word2vec_format(dir_path + '/../data/duyet_word2vec_skill.bin', binary=True)
 
 def get_relevant_skill(skill):
 	try:

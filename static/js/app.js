@@ -1,8 +1,11 @@
-var app = angular.module('app', ['ngTagsInput', 'ngAvatar']);
+var app = angular.module('app', ['ngTagsInput', 'ngAvatar', 'ngSanitize']);
 
 app.controller('main', function ($scope, $http, $sce) {
 	$scope.searchSkills = [ 'js' ];
+	$scope.skillColor = {};
 	$scope.limit = 20;
+	$scope.candiate_matched = [];
+	$scope.relevant_skills = [];
 
 	$scope.skillTypeAhead = function (keyword) {
 		return [];
@@ -14,23 +17,36 @@ app.controller('main', function ($scope, $http, $sce) {
 	}
 
 	$scope.highlightSkill = function(text) {
-		
-
 		var skills = [];
-		$scope.searchSkills.forEach(function (i) {
-			skills.push(i.text)
+		$scope.searchSkills.forEach(function (i, index) {
+			skills.push(i.text);
+			var skill = i.text;
+			$scope.skillColor[skill] = index;
+
+			skill_search = [ skill ].concat($scope.getRelevantSkills(skill))
+			skill_search = skill_search.join('|')
+
+			text = text.replace(new RegExp(', (' + skill_search + '),', 'gi'), 
+			', <span class="highlightedText color'+ index +'">$1</span>,')
 		});
-		var search = skills.join('|');
-		if (!search) {
-			return $sce.trustAsHtml(text);
-		}
-		return $sce.trustAsHtml(text.replace(new RegExp(search, 'gi'), '<span class="highlightedText">$&</span>'));
+		return $sce.trustAsHtml(text);
 	};
 
-	$scope.candiate_matched = [];
-	$scope.relevant_skills = [];
-	$scope.loading = false;
+	$scope.getSkillColor = function (skill) {
+		if (skill in $scope.skillColor) return $scope.skillColor[skill];
+		return -1;
+	}
 
+	$scope.getRelevantSkills = function (skill) {
+		for (var sk in $scope.relevant_skills) {
+			if ($scope.relevant_skills[sk].name == skill)
+				return $scope.relevant_skills[sk].data;
+		}
+
+		return [];
+	}
+	
+	$scope.loading = false;
 	$scope.submit_search = function () {
 		var skills = [];
 		$scope.loading = true;
@@ -44,12 +60,18 @@ app.controller('main', function ($scope, $http, $sce) {
 
 		$http.get('/api/v1/matching_candidates?skills=' + skills + '&limit=' + $scope.limit).then(function(data) {
 			$scope.candiate_matched = data.data;
-			console.log(data.data);
+			angular.forEach($scope.candiate_matched, function(value, index) {
+				value['skills_html'] = value.skills;
+			});
+
 			$scope.loading = false;
 		});
 
 		$http.get('/api/v1/relevant_skills?skills=' + skills).then(function(data) {
 			$scope.relevant_skills = data.data;
+			angular.forEach($scope.candiate_matched, function(value, index) {
+				value['skills_html'] = $scope.highlightSkill(value.skills)
+			});
 		});
 	}
 });
